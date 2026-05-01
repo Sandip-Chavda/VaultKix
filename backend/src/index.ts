@@ -6,6 +6,7 @@ import { createServer } from "http";
 import { ENV } from "./config/env";
 import connectDB from "./config/db";
 import { errorHandler } from "./middleware/errorHandler";
+import authRoutes from "./routes/auth";
 
 const app = express();
 const httpServer = createServer(app);
@@ -20,6 +21,9 @@ app.use(morgan("dev"));
 app.get("/health", (req, res) => {
   res.json({ success: true, message: "VaultKix API is running 🚀" });
 });
+
+// Routes
+app.use("/api/auth", authRoutes);
 
 // Error handler
 app.use(errorHandler);
