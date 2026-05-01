@@ -1,0 +1,15 @@
+{
+  "name": "vaultkix",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "backend",
+    "packages/*"
+  ],
+  "scripts": {
+    "mobile": "npm run start --workspace=apps/mobile",
+    "web": "npm run dev --workspace=apps/web",
+    "backend": "npm run dev --workspace=backend"
+  }
+}
