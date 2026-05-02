@@ -12,6 +12,7 @@ import productRoutes from "./routes/product";
 import bidRoutes from "./routes/bid";
 import offerRoutes from "./routes/offer";
 import orderRoutes from "./routes/order";
+import notificationRoutes from "./routes/notification";
 
 const app = express();
 const httpServer = createServer(app);
@@ -33,6 +34,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/bids", bidRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Error handler
 app.use(errorHandler);
