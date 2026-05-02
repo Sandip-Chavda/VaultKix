@@ -6,7 +6,9 @@ import { createServer } from "http";
 import { ENV } from "./config/env";
 import connectDB from "./config/db";
 import { errorHandler } from "./middleware/errorHandler";
+
 import authRoutes from "./routes/auth";
+import productRoutes from "./routes/product";
 
 const app = express();
 const httpServer = createServer(app);
@@ -24,6 +26,7 @@ app.get("/health", (req, res) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
 
 // Error handler
 app.use(errorHandler);
