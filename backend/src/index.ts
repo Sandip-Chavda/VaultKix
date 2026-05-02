@@ -9,6 +9,7 @@ import { errorHandler } from "./middleware/errorHandler";
 
 import authRoutes from "./routes/auth";
 import productRoutes from "./routes/product";
+import bidRoutes from "./routes/bid";
 
 const app = express();
 const httpServer = createServer(app);
@@ -27,6 +28,7 @@ app.get("/health", (req, res) => {
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/bids", bidRoutes);
 
 // Error handler
 app.use(errorHandler);
