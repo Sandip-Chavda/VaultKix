@@ -16,6 +16,7 @@ import offerRoutes from "./routes/offer";
 import orderRoutes from "./routes/order";
 import notificationRoutes from "./routes/notification";
 import uploadRoutes from "./routes/upload";
+import paymentRoutes from "./routes/payment";
 
 const app = express();
 const httpServer = createServer(app);
@@ -34,6 +35,7 @@ app.use("/api/offers", offerRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // ── Health Check
 app.get("/health", (req, res) => {
