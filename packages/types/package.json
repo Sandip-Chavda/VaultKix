@@ -2,5 +2,11 @@
   "name": "@vaultkix/types",
   "version": "1.0.0",
   "main": "index.ts",
-  "types": "index.ts"
+  "types": "index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
 }
