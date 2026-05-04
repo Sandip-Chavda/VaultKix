@@ -1,3 +1,4 @@
+import { emitBidUpdate } from "../socket/index";
 import { Request, Response } from "express";
 import Bid from "../models/Bid";
 import Product from "../models/Product";
@@ -200,6 +201,18 @@ export const placeBid = async (
     auction.totalBidsCount += 1;
     auction.amount = amount;
     await auction.save();
+
+    // Emit real-time bid update to all users watching this product
+    emitBidUpdate(req.params.productId as string, {
+      currentHighestBid: auction.currentHighestBid,
+      totalBidsCount: auction.totalBidsCount,
+      bidIncrement: auction.bidIncrement,
+      auctionEndsAt: auction.auctionEndsAt,
+      latestBid: {
+        amount,
+        createdAt: new Date(),
+      },
+    });
 
     await User.findByIdAndUpdate(req.user?.userId, {
       $inc: { "stats.bidsPlaced": 1 },

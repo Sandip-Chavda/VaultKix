@@ -1,4 +1,5 @@
 import { Response } from "express";
+import { emitOfferUpdate } from "../socket/index";
 import Offer from "../models/Offer";
 import Product from "../models/Product";
 import User from "../models/User";
@@ -209,6 +210,14 @@ export const counterOffer = async (
 
     await offer.save();
 
+    // Emit real-time counter offer to buyer
+    emitOfferUpdate(offer.buyerId.toString(), {
+      offerId: offer._id.toString(),
+      type: "offer:countered",
+      amount,
+      from: "seller",
+    });
+
     // Notify buyer
     await Notification.create({
       userId: offer.buyerId,
@@ -285,6 +294,15 @@ export const acceptOffer = async (
 
     // Notify the other party
     const notifyUserId = isBuyer ? offer.sellerId : offer.buyerId;
+
+    // Emit real-time accept to the other party
+    emitOfferUpdate(notifyUserId.toString(), {
+      offerId: offer._id.toString(),
+      type: "offer:accepted",
+      amount: finalAmount,
+      from: isBuyer ? "buyer" : "seller",
+    });
+
     const notifyTitle = isBuyer
       ? "Buyer accepted your offer"
       : "Seller accepted your offer";
@@ -352,6 +370,14 @@ export const rejectOffer = async (
 
     // Notify the other party
     const notifyUserId = isBuyer ? offer.sellerId : offer.buyerId;
+
+    // Emit real-time reject to the other party
+    emitOfferUpdate(notifyUserId.toString(), {
+      offerId: offer._id.toString(),
+      type: "offer:rejected",
+      amount: 0,
+      from: isBuyer ? "buyer" : "seller",
+    });
 
     await Notification.create({
       userId: notifyUserId,

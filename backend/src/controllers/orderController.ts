@@ -1,4 +1,5 @@
 import { Response } from "express";
+import { emitOrderUpdate } from "../socket/index";
 import Order from "../models/Order";
 import Offer from "../models/Offer";
 import Product from "../models/Product";
@@ -276,6 +277,13 @@ export const updateOrderStatus = async (
       order.settledAt = new Date();
     }
     await order.save();
+
+    // Emit real-time order update to buyer
+    emitOrderUpdate(order.buyerId.toString(), {
+      orderId: order._id.toString(),
+      status,
+      trackingNumber: trackingNumber ?? "",
+    });
 
     // If order goes to vaulted — create a Position automatically
     if (status === "vaulted") {
