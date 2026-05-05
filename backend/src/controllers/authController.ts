@@ -11,11 +11,18 @@ import { z } from "zod";
 
 // ── Zod Validation Schemas
 
+// const registerSchema = z.object({
+//   email: z.string().email("Invalid email"),
+//   username: z.string().min(3, "Username must be at least 3 characters"),
+//   password: z.string().min(6, "Password must be at least 6 characters"),
+//   role: z.enum(["buyer", "seller", "both"]).default("buyer"),
+// });
+
 const registerSchema = z.object({
   email: z.string().email("Invalid email"),
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["buyer", "seller", "both"]).default("buyer"),
+  role: z.enum(["buyer", "seller"]).default("buyer"),
 });
 
 const loginSchema = z.object({

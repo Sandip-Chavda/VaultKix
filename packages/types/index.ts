@@ -25,7 +25,8 @@ export interface PaginatedResponse<T> {
 
 // ── User ──────────────────────────────────────────────────────────────────────
 
-export type UserRole = "buyer" | "seller" | "both";
+// export type UserRole = "buyer" | "seller" | "both";
+export type UserRole = "buyer" | "seller";
 
 export interface IWallet {
   balance: number;

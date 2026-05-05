@@ -30,6 +30,18 @@ export const protect = (
   }
 };
 
+// export const sellerOnly = (
+//   req: AuthRequest,
+//   res: Response,
+//   next: NextFunction,
+// ): void => {
+//   if (req.user?.role !== "seller" && req.user?.role !== "both") {
+//     errorResponse(res, "Seller access only", 403);
+//     return;
+//   }
+//   next();
+// };
+
 export const sellerOnly = (
   req: AuthRequest,
   res: Response,
