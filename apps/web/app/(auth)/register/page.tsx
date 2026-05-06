@@ -10,6 +10,24 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { UserRole } from "@vaultkix/types";
 
+// const ROLES: { value: UserRole; label: string; description: string }[] = [
+//   {
+//     value: "buyer",
+//     label: "Buyer",
+//     description: "Browse and buy sneakers",
+//   },
+//   {
+//     value: "seller",
+//     label: "Seller",
+//     description: "List and sell your sneakers",
+//   },
+//   {
+//     value: "both",
+//     label: "Both",
+//     description: "Buy and sell on the platform",
+//   },
+// ];
+
 const ROLES: { value: UserRole; label: string; description: string }[] = [
   {
     value: "buyer",
@@ -20,11 +38,6 @@ const ROLES: { value: UserRole; label: string; description: string }[] = [
     value: "seller",
     label: "Seller",
     description: "List and sell your sneakers",
-  },
-  {
-    value: "both",
-    label: "Both",
-    description: "Buy and sell on the platform",
   },
 ];
 
@@ -123,7 +136,7 @@ export default function RegisterPage() {
           {/* Role selector */}
           <div className="space-y-1.5">
             <Label>I want to</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {ROLES.map((role) => (
                 <button
                   key={role.value}
