@@ -7,9 +7,18 @@ import type {
   SafeUser,
 } from "@vaultkix/types";
 
+type AuthResponseData = {
+  user: SafeUser;
+  accessToken: string;
+  refreshToken: string;
+};
+
+type UserData = { user: SafeUser };
+type TokenData = { accessToken: string; refreshToken: string };
+
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
-    const { data } = await api.post<ApiResponse<AuthResponse>>(
+    const { data } = await api.post<ApiResponse<AuthResponseData>>(
       "/auth/login",
       payload,
     );
@@ -18,7 +27,7 @@ export const authService = {
   },
 
   async register(payload: RegisterPayload): Promise<AuthResponse> {
-    const { data } = await api.post<ApiResponse<AuthResponse>>(
+    const { data } = await api.post<ApiResponse<AuthResponseData>>(
       "/auth/register",
       payload,
     );
@@ -27,20 +36,22 @@ export const authService = {
   },
 
   async getMe(): Promise<SafeUser> {
-    const { data } = await api.get<ApiResponse<SafeUser>>("/auth/me");
+    const { data } = await api.get<ApiResponse<UserData>>("/auth/me");
     if (!data.success || !data.data) throw new Error(data.message);
-    return data.data;
+    return data.data.user;
   },
 
   async logout(): Promise<void> {
-    await api.post("/auth/logout");
+    const refreshToken = localStorage.getItem("refreshToken");
+    await api.post("/auth/logout", { refreshToken });
   },
 
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
-    const { data } = await api.post<ApiResponse<{ accessToken: string }>>(
-      "/auth/refresh",
-      { refreshToken },
-    );
+  async refreshToken(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const { data } = await api.post<ApiResponse<TokenData>>("/auth/refresh", {
+      refreshToken,
+    });
     if (!data.success || !data.data) throw new Error(data.message);
     return data.data;
   },
@@ -49,11 +60,11 @@ export const authService = {
     username?: string;
     avatar?: string;
   }): Promise<SafeUser> {
-    const { data } = await api.patch<ApiResponse<SafeUser>>(
+    const { data } = await api.patch<ApiResponse<UserData>>(
       "/auth/profile",
       payload,
     );
     if (!data.success || !data.data) throw new Error(data.message);
-    return data.data;
+    return data.data.user;
   },
 };
