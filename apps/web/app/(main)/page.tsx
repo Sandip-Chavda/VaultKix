@@ -129,58 +129,70 @@ export default function HomePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
       {/* Hero */}
+      <section className="relative min-h-[280px] md:min-h-[320px] mb-4">
+        {/* Purple background box — clipped separately */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-purple-600 to-purple-800 overflow-hidden">
+          {/* Decorative circles inside the box */}
+          <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute right-16 bottom-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
+        </div>
 
-      <section className="rounded-2xl overflow-hidden bg-linear-to-br from-primary via-purple-600 to-purple-800 text-white relative min-h-[280px] md:min-h-[320px]">
-        <div className="relative z-10 p-8 md:p-12 max-w-[55%]">
-          <Badge className="bg-white/20 text-white border-white/30 mb-4">
-            🔥 Live auctions happening now
-          </Badge>
-          <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">
-            The Sneaker Marketplace
-            <br />
-            <span className="text-purple-200">Built for Deals</span>
-          </h1>
-          <p className="text-purple-100 mb-6 text-sm md:text-base">
-            Bid, offer, and negotiate your way to unbeatable prices on premium
-            sneakers.
-          </p>
-          <div className="flex gap-3">
-            <Button
-              className="bg-white text-primary hover:bg-purple-50 font-semibold"
-              onClick={() =>
-                document
-                  .getElementById("products-section")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-            >
-              Browse Sneakers
-            </Button>
-            <Link href="/register">
+        {/* Content row — sits above background */}
+        <div className="relative z-10 flex items-center h-full min-h-[280px] md:min-h-[320px] px-8 md:px-12">
+          {/* Left text */}
+          <div className="max-w-[50%]">
+            <Badge className="bg-white/20 text-white border-white/30 mb-4">
+              🔥 Live auctions happening now
+            </Badge>
+            <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3 text-white">
+              The Sneaker Marketplace
+              <br />
+              <span className="text-purple-200">Built for Deals</span>
+            </h1>
+            <p className="text-purple-100 mb-6 text-sm md:text-base">
+              Bid, offer, and negotiate your way to unbeatable prices on premium
+              sneakers.
+            </p>
+            <div className="flex gap-3">
               <Button
-                variant="outline"
-                className="border-white/50 text-white hover:bg-white/10"
+                className="bg-white text-primary hover:bg-purple-50 font-semibold"
+                onClick={() =>
+                  document
+                    .getElementById("products-section")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
               >
-                Start Selling
+                Browse Sneakers
               </Button>
-            </Link>
+              <Link href="/register">
+                <Button
+                  variant="outline"
+                  className="border-white/50 text-white hover:bg-white/10"
+                >
+                  Start Selling
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Right — shoe overflows the box */}
+          <div className="absolute right-10  md:right-0 bottom-8 w-[340px] md:w-[430px]">
+            {/* Glow blob behind shoe */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-56 h-24 bg-purple-300/30 rounded-full blur-2xl" />
+            <div className="absolute right-70 bottom-50 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/sneaker.png"
+              alt="Featured sneaker"
+              className="relative w-full object-contain"
+              style={{
+                filter: "drop-shadow(-8px 16px 24px rgba(0,0,0,0.5))",
+                transform: "rotate(-15deg) translateY(-20px)",
+                transformOrigin: "bottom right",
+              }}
+            />
           </div>
         </div>
-
-        {/* Sneaker image — right side */}
-        <div className="absolute right-0 bottom-0 h-full w-[45%] flex items-end justify-end">
-          {/* Glow effect behind shoe */}
-          <div className="absolute bottom-4 right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/sneaker.png"
-            alt="Featured sneaker"
-            className="relative z-10 h-[90%] w-auto object-contain drop-shadow-2xl"
-          />
-        </div>
-
-        {/* Decorative circle */}
-        <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute right-16 bottom-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
       </section>
 
       {/* Brands */}

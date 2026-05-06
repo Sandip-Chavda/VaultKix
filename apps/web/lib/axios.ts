@@ -29,9 +29,10 @@ api.interceptors.response.use(
           refreshToken,
         });
 
-        const newToken = data.data.accessToken;
-        localStorage.setItem("accessToken", newToken);
-        original.headers.Authorization = `Bearer ${newToken}`;
+        const { accessToken, refreshToken: newRefreshToken } = data.data;
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", newRefreshToken);
+        original.headers.Authorization = `Bearer ${accessToken}`;
         return api(original);
       } catch {
         localStorage.removeItem("accessToken");

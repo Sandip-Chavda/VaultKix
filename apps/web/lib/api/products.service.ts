@@ -86,4 +86,13 @@ export const productsService = {
     if (!data.success || !data.data) throw new Error(data.message);
     return data.data.product;
   },
+
+  // Add to productsService in lib/api/products.service.ts
+  async deleteVariant(productId: string, variantId: string): Promise<IProduct> {
+    const { data } = await api.delete<ApiResponse<SingleProductData>>(
+      `/products/${productId}/variants/${variantId}`,
+    );
+    if (!data.success || !data.data) throw new Error(data.message);
+    return data.data.product;
+  },
 };
