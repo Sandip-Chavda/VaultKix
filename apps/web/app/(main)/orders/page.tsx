@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useOrderStore } from "@/stores/order.store";
 import { OrderCard } from "@/components/order/OrderCard";
@@ -45,8 +45,17 @@ export default function OrdersPage() {
 
   const isSeller = user?.role === "seller";
   const [activeTab, setActiveTab] = useState<"buying" | "selling">("buying");
-  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Derive selectedOrder live from the store — auto-updates when store changes
+  const selectedOrder = useMemo(
+    () =>
+      [...buyerOrders, ...sellerOrders].find(
+        (o) => o._id === selectedOrderId,
+      ) ?? null,
+    [buyerOrders, sellerOrders, selectedOrderId],
+  );
 
   const loadOrders = useCallback(() => {
     fetchBuyerOrders();
@@ -58,13 +67,13 @@ export default function OrdersPage() {
   }, [loadOrders]);
 
   const handleOrderClick = (order: IOrder) => {
-    setSelectedOrder(order);
+    setSelectedOrderId(order._id);
     setSheetOpen(true);
   };
 
   const handleSheetClose = () => {
     setSheetOpen(false);
-    setSelectedOrder(null);
+    setSelectedOrderId(null);
   };
 
   const currentOrders = activeTab === "buying" ? buyerOrders : sellerOrders;
