@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import { authService } from "@/lib/api/auth.service";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import type { SafeUser, LoginPayload, RegisterPayload } from "@vaultkix/types";
+import { getErrorMessage } from "@/lib/utils";
 
 interface AuthState {
   user: SafeUser | null;
@@ -57,7 +58,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         } catch (err) {
           set({
             isLoading: false,
-            error: err instanceof Error ? err.message : "Login failed",
+            error: getErrorMessage(err),
           });
           throw err;
         }
@@ -84,7 +85,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         } catch (err) {
           set({
             isLoading: false,
-            error: err instanceof Error ? err.message : "Registration failed",
+            error: getErrorMessage(err),
           });
           throw err;
         }

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
 import type { IProduct } from "@vaultkix/types";
+import { useAuthStore } from "@/stores/auth.store";
 
 const CATEGORIES = [
   "All",
@@ -102,6 +103,8 @@ export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeBrand, setActiveBrand] = useState<string | null>(null);
 
+  const { isAuthenticated, user } = useAuthStore();
+
   // Sync search param from navbar
   const searchQuery = searchParams.get("search") ?? undefined;
 
@@ -164,7 +167,15 @@ export default function HomePage() {
               >
                 Browse Sneakers
               </Button>
-              <Link href="/register">
+              <Link
+                href={
+                  isAuthenticated
+                    ? user?.role === "seller"
+                      ? "/seller"
+                      : "/profile"
+                    : "/register"
+                }
+              >
                 <Button
                   variant="outline"
                   className="border-white/50 text-white hover:bg-white/10"

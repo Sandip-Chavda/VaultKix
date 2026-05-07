@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { AxiosError } from "axios";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -39,4 +40,12 @@ export function getInitials(name: string): string {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+}
+
+export function getErrorMessage(err: unknown): string {
+  if (err instanceof AxiosError) {
+    return err.response?.data?.message ?? err.message;
+  }
+  if (err instanceof Error) return err.message;
+  return "Something went wrong";
 }

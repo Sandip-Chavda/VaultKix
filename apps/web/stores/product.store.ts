@@ -5,6 +5,7 @@ import type {
   ProductFilters,
   PaginatedResponse,
 } from "@vaultkix/types";
+import { getErrorMessage } from "@/lib/utils";
 
 interface ProductState {
   products: IProduct[];
@@ -45,7 +46,7 @@ export const useProductStore = create<ProductState & ProductActions>()(
       } catch (err) {
         set({
           isLoading: false,
-          error: err instanceof Error ? err.message : "Failed to load products",
+          error: getErrorMessage(err),
         });
       }
     },
@@ -58,7 +59,7 @@ export const useProductStore = create<ProductState & ProductActions>()(
       } catch (err) {
         set({
           isLoading: false,
-          error: err instanceof Error ? err.message : "Failed to load product",
+          error: getErrorMessage(err),
         });
       }
     },
