@@ -361,7 +361,7 @@ export default function ProductDetailPage() {
     fetchProduct,
   } = useProductStore();
   const { fetchAuction, updateBidRealtime, clearAuction } = useBidStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { sentOffers, fetchSentOffers } = useOfferStore();
 
   const [selectedImage, setSelectedImage] = useState(0);
@@ -434,6 +434,13 @@ export default function ProductDetailPage() {
       </div>
     );
   }
+
+  const isOwnProduct =
+    user &&
+    product &&
+    (typeof product.sellerId === "object"
+      ? (product.sellerId as SafeUser)._id === user._id
+      : product.sellerId === user._id);
 
   const hasImages = product.images?.length > 0;
   const uniqueTypes = [...new Set(product.variants.map((v) => v.type))];
@@ -642,10 +649,18 @@ export default function ProductDetailPage() {
           <AuctionSection productId={productId} />
 
           {/* CTA Buttons */}
+
           <div className="flex flex-col gap-2 pt-1">
-            {isAuthenticated ? (
+            {isOwnProduct ? (
+              // Seller viewing their own product
+              <div className="bg-section rounded-xl p-3 text-center border border-border">
+                <p className="text-sm text-muted-foreground">
+                  This is your product listing
+                </p>
+              </div>
+            ) : isAuthenticated ? (
               existingOffer ? (
-                // Already has active offer
+                // buyer already has active negotiating offer
                 <div className="space-y-2">
                   <div className="bg-section rounded-xl p-3 border border-primary/20">
                     <div className="flex items-center justify-between mb-1">
@@ -677,7 +692,7 @@ export default function ProductDetailPage() {
                       </p>
                     </div>
                   </div>
-                  <Link href={`/offers`}>
+                  <Link href="/offers">
                     <Button
                       variant="outline"
                       className="w-full border-primary text-primary"
@@ -687,6 +702,7 @@ export default function ProductDetailPage() {
                   </Link>
                 </div>
               ) : (
+                // No active offer — can make a new one
                 <Button
                   className="w-full bg-primary hover:bg-primary/90 text-white h-11"
                   onClick={() => setOfferOpen(true)}

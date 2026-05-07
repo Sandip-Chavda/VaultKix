@@ -17,7 +17,7 @@ import { OfferStatusBadge } from "./OfferStatusBadge";
 import { useOfferStore } from "@/stores/offer.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { formatCurrency } from "@/lib/utils";
-import type { IOffer, IProduct } from "@vaultkix/types";
+import type { IOffer, IProduct, SafeUser } from "@vaultkix/types";
 
 // ── Expiry Countdown ──────────────────────────────────────────────────────────
 
@@ -111,7 +111,15 @@ export function OfferDetailSheet({
   // Determine whose turn it is
   const lastFrom = fullOffer?.thread[fullOffer.thread.length - 1]?.from;
   const myRole = viewAs;
-  const isMyTurn = lastFrom !== myRole;
+
+  const myActualRole =
+    fullOffer?.buyerId &&
+    typeof fullOffer.buyerId === "object" &&
+    (fullOffer.buyerId as SafeUser)._id === user?._id
+      ? "buyer"
+      : "seller";
+
+  const isMyTurn = lastFrom !== myActualRole;
 
   const handleAccept = async () => {
     if (!fullOffer) return;
@@ -322,10 +330,19 @@ export function OfferDetailSheet({
 
             {/* Waiting state */}
             {canAct && !isMyTurn && (
-              <div className="bg-section rounded-xl p-3 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Waiting for the {viewAs === "buyer" ? "seller" : "buyer"} to
+              <div className="bg-section rounded-xl p-3 text-center border border-border">
+                <p className="text-sm font-semibold text-dark mb-0.5">
+                  Waiting for {viewAs === "buyer" ? "seller" : "buyer"} to
                   respond
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Last offer:{" "}
+                  <span className="font-semibold text-primary">
+                    {formatCurrency(
+                      fullOffer?.thread[fullOffer.thread.length - 1]?.amount ??
+                        0,
+                    )}
+                  </span>
                 </p>
               </div>
             )}
