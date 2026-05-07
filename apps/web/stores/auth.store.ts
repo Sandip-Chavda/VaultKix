@@ -25,6 +25,14 @@ interface AuthActions {
   initAuth: () => Promise<void>;
 }
 
+const setAuthCookie = () => {
+  document.cookie = "vaultkix_auth=1; path=/; max-age=604800; SameSite=Lax";
+};
+
+const clearAuthCookie = () => {
+  document.cookie = "vaultkix_auth=; path=/; max-age=0; SameSite=Lax";
+};
+
 export const useAuthStore = create<AuthState & AuthActions>()(
   persist(
     (set, get) => ({
@@ -42,12 +50,10 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         try {
           const { user, accessToken, refreshToken } =
             await authService.login(payload);
-
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
-
+          setAuthCookie(); // ← add this
           connectSocket(accessToken);
-
           set({
             user,
             accessToken,
@@ -56,10 +62,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             isLoading: false,
           });
         } catch (err) {
-          set({
-            isLoading: false,
-            error: getErrorMessage(err),
-          });
+          set({ isLoading: false, error: getErrorMessage(err) });
           throw err;
         }
       },
@@ -69,12 +72,10 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         try {
           const { user, accessToken, refreshToken } =
             await authService.register(payload);
-
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
-
+          setAuthCookie(); // ← add this
           connectSocket(accessToken);
-
           set({
             user,
             accessToken,
@@ -83,10 +84,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             isLoading: false,
           });
         } catch (err) {
-          set({
-            isLoading: false,
-            error: getErrorMessage(err),
-          });
+          set({ isLoading: false, error: getErrorMessage(err) });
           throw err;
         }
       },
@@ -95,10 +93,11 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         try {
           await authService.logout();
         } catch {
-          // fail silently — always clear local state
+          // fail silently
         } finally {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
+          clearAuthCookie(); // ← add this
           disconnectSocket();
           set({
             user: null,
@@ -116,17 +115,20 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       // Called on app mount — rehydrates user from stored token
       initAuth: async () => {
         const { accessToken } = get();
-        if (!accessToken) return;
-
+        if (!accessToken) {
+          clearAuthCookie(); // ← clean up stale cookie if no token
+          return;
+        }
         set({ isLoading: true });
         try {
           const user = await authService.getMe();
+          setAuthCookie(); // ← ensure cookie exists if token is valid
           connectSocket(accessToken);
           set({ user, isAuthenticated: true, isLoading: false });
         } catch {
-          // Token is stale — clear everything
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
+          clearAuthCookie(); // ← add this
           set({
             user: null,
             accessToken: null,

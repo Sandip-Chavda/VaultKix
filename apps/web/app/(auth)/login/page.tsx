@@ -8,9 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const { login, isLoading, error, clearError } = useAuthStore();
 
   const [form, setForm] = useState({ email: "", password: "" });
@@ -24,7 +27,8 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       await login(form);
-      router.push("/");
+      const from = searchParams.get("from") ?? "/";
+      router.push(from);
     } catch {
       // error is already set in store
     }
