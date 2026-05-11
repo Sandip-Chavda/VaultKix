@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { ShoppingBag, Clock, AlertCircle, Check } from "lucide-react";
 import {
   Sheet,
@@ -16,8 +16,14 @@ import { OfferThread } from "./OfferThread";
 import { OfferStatusBadge } from "./OfferStatusBadge";
 import { useOfferStore } from "@/stores/offer.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { useOfferRealtime } from "@/hooks/use-offer-realtime";
 import { formatCurrency } from "@/lib/utils";
-import type { IOffer, IProduct, SafeUser } from "@vaultkix/types";
+import type {
+  IOffer,
+  IProduct,
+  OfferUpdateEvent,
+  SafeUser,
+} from "@vaultkix/types";
 
 // ── Expiry Countdown ──────────────────────────────────────────────────────────
 
@@ -81,11 +87,11 @@ export function OfferDetailSheet({
   const [counterAmount, setCounterAmount] = useState("");
   const [showCounter, setShowCounter] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
-
   const [, startTransition] = useTransition();
 
   const timeLeft = useExpiryCountdown(selectedOffer?.offer?.expiresAt ?? null);
 
+  // ── Fetch offer when sheet opens ──────────────────────────────────────────
   useEffect(() => {
     if (open && offer?._id) {
       fetchOffer(offer._id);
@@ -97,20 +103,34 @@ export function OfferDetailSheet({
     }
   }, [open, offer?._id, fetchOffer, clearError]);
 
-  const detail = selectedOffer;
-  const fullOffer = detail?.offer ?? offer;
+  // ── Real-time socket updates ──────────────────────────────────────────────
+  const currentOfferId = selectedOffer?.offer?._id ?? offer?._id ?? null;
+
+  useOfferRealtime({
+    offerId: currentOfferId,
+    onEvent: useCallback(
+      (event: OfferUpdateEvent) => {
+        if (currentOfferId && event.offerId === currentOfferId) {
+          fetchOffer(currentOfferId);
+        }
+      },
+      [currentOfferId, fetchOffer],
+    ),
+  });
+
+  // ── Derived state ─────────────────────────────────────────────────────────
+  const fullOffer = selectedOffer?.offer ?? offer;
+
   const product =
     typeof fullOffer?.productId === "object"
       ? (fullOffer.productId as IProduct)
       : null;
 
   const isNegotiating = fullOffer?.currentStatus === "negotiating";
-  const isExpired = detail?.isExpired ?? false;
+  const isExpired = selectedOffer?.isExpired ?? false;
   const canAct = isNegotiating && !isExpired;
 
-  // Determine whose turn it is
   const lastFrom = fullOffer?.thread[fullOffer.thread.length - 1]?.from;
-  const myRole = viewAs;
 
   const myActualRole =
     fullOffer?.buyerId &&
@@ -121,6 +141,7 @@ export function OfferDetailSheet({
 
   const isMyTurn = lastFrom !== myActualRole;
 
+  // ── Action handlers ───────────────────────────────────────────────────────
   const handleAccept = async () => {
     if (!fullOffer) return;
     try {
@@ -148,18 +169,21 @@ export function OfferDetailSheet({
   const handleCounter = async () => {
     if (!fullOffer || !counterAmount) return;
     try {
-      await counterOffer(fullOffer._id, { amount: parseFloat(counterAmount) });
+      await counterOffer(fullOffer._id, {
+        amount: parseFloat(counterAmount),
+      });
       setCounterAmount("");
       setShowCounter(false);
       setActionSuccess("Counter offer sent!");
+      fetchOffer(fullOffer._id);
       setTimeout(() => {
         onActionComplete?.();
         setActionSuccess(null);
       }, 2000);
-      fetchOffer(fullOffer._id);
     } catch {}
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
@@ -260,7 +284,7 @@ export function OfferDetailSheet({
               </p>
             )}
 
-            {/* Actions */}
+            {/* Actions — my turn */}
             {canAct && isMyTurn && (
               <div className="space-y-2 pt-1">
                 {showCounter ? (
@@ -330,14 +354,14 @@ export function OfferDetailSheet({
             {canAct && !isMyTurn && (
               <div className="bg-section rounded-xl p-3 text-center border border-border">
                 <p className="text-sm font-semibold text-dark mb-0.5">
-                  Waiting for {viewAs === "buyer" ? "seller" : "buyer"} to
+                  Waiting for {myActualRole === "buyer" ? "seller" : "buyer"} to
                   respond
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Last offer:{" "}
                   <span className="font-semibold text-primary">
                     {formatCurrency(
-                      fullOffer?.thread[fullOffer.thread.length - 1]?.amount ??
+                      fullOffer.thread[fullOffer.thread.length - 1]?.amount ??
                         0,
                     )}
                   </span>

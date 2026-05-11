@@ -7,7 +7,8 @@ import { OfferCard } from "@/components/offer/OfferCard";
 import { OfferDetailSheet } from "@/components/offer/OfferDetailSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package } from "lucide-react";
-import type { IOffer } from "@vaultkix/types";
+import type { IOffer, OfferUpdateEvent } from "@vaultkix/types";
+import { useOfferRealtime } from "@/hooks/use-offer-realtime";
 
 function EmptyOffers({ label }: { label: string }) {
   return (
@@ -52,6 +53,17 @@ export default function OffersPage() {
     fetchSentOffers();
     if (isSeller) fetchReceivedOffers();
   }, [fetchSentOffers, fetchReceivedOffers, isSeller]);
+
+  // Refresh list on any real-time offer event
+  useOfferRealtime({
+    offerId: null, // null = listen to all offer events for this user
+    onEvent: useCallback(
+      (_event: OfferUpdateEvent) => {
+        loadOffers();
+      },
+      [loadOffers],
+    ),
+  });
 
   useEffect(() => {
     loadOffers();
