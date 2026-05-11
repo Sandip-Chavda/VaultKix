@@ -18,7 +18,7 @@ router.get("/sent", protect, getSentOffers);
 router.get("/received", protect, sellerOnly, getReceivedOffers);
 router.get("/:offerId", protect, getOffer);
 router.post("/:productId", protect, offerLimiter, makeOffer);
-router.post("/:offerId/counter", protect, sellerOnly, counterOffer);
+router.post("/:offerId/counter", protect, counterOffer);
 router.post("/:offerId/accept", protect, acceptOffer);
 router.post("/:offerId/reject", protect, rejectOffer);
 

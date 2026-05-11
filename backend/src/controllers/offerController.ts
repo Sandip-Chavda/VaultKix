@@ -155,7 +155,6 @@ export const counterOffer = async (
     }
 
     const { amount } = parsed.data;
-
     const offer = await Offer.findById(req.params.offerId).populate(
       "productId",
       "name",
@@ -166,8 +165,10 @@ export const counterOffer = async (
       return;
     }
 
-    // Only the seller of this offer can counter
-    if (offer.sellerId.toString() !== req.user?.userId) {
+    const isBuyer = offer.buyerId.toString() === req.user?.userId;
+    const isSeller = offer.sellerId.toString() === req.user?.userId;
+
+    if (!isBuyer && !isSeller) {
       errorResponse(res, "Not authorized", 403);
       return;
     }
@@ -181,53 +182,64 @@ export const counterOffer = async (
       return;
     }
 
-    // Check offer has not expired
     if (new Date() > new Date(offer.expiresAt)) {
-      await Offer.findByIdAndUpdate(offer._id, {
-        currentStatus: "expired",
-      });
+      await Offer.findByIdAndUpdate(offer._id, { currentStatus: "expired" });
       errorResponse(res, "Offer has expired", 410);
       return;
     }
 
-    // Update last thread entry to countered
+    // Check it's their turn
     const lastThread = offer.thread[offer.thread.length - 1];
-    if (lastThread) {
-      lastThread.status = "countered";
+    const myRole = isBuyer ? "buyer" : "seller";
+    if (lastThread?.from === myRole) {
+      errorResponse(res, "It's not your turn to counter", 400);
+      return;
     }
 
-    // Add counter offer to thread
+    // Check offers remaining
+    if (offer.offersLeft <= 0) {
+      errorResponse(res, "No offer exchanges remaining", 400);
+      return;
+    }
+
+    // Decrement offersLeft
+    offer.offersLeft -= 1;
+
+    // Mark last thread entry as countered
+    if (lastThread) lastThread.status = "countered";
+
+    // Push counter from correct party
     offer.thread.push({
-      from: "seller",
+      from: myRole as "buyer" | "seller",
       amount,
       timestamp: new Date(),
       status: "pending",
     });
 
-    // Reset expiry to 48 hours from now
+    // Reset expiry
     offer.expiresAt = new Date();
     offer.expiresAt.setHours(offer.expiresAt.getHours() + 48);
 
     await offer.save();
 
-    // Emit real-time counter offer to buyer
-    emitOfferUpdate(offer.buyerId.toString(), {
+    // Notify the other party
+    const notifyUserId = isBuyer
+      ? offer.sellerId.toString()
+      : offer.buyerId.toString();
+
+    emitOfferUpdate(notifyUserId, {
       offerId: offer._id.toString(),
       type: "offer:countered",
       amount,
-      from: "seller",
+      from: myRole as "buyer" | "seller",
     });
 
-    // Notify buyer
     await Notification.create({
-      userId: offer.buyerId,
+      userId: notifyUserId,
       type: "offer_received",
       title: "Counter offer received",
-      body: `The seller countered your offer with $${amount}`,
-      data: {
-        offerId: offer._id,
-        amount,
-      },
+      body: `You received a counter offer of $${amount}`,
+      data: { offerId: offer._id, amount },
     });
 
     successResponse(res, { offer }, "Counter offer sent");

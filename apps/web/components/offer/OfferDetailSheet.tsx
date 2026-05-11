@@ -303,16 +303,14 @@ export function OfferDetailSheet({
                     >
                       Reject
                     </Button>
-                    {viewAs === "seller" && (
-                      <Button
-                        variant="outline"
-                        className="flex-1 border-primary text-primary hover:bg-primary-light"
-                        onClick={() => setShowCounter(true)}
-                        disabled={isLoading}
-                      >
-                        Counter
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-primary text-primary hover:bg-primary-light"
+                      onClick={() => setShowCounter(true)}
+                      disabled={isLoading}
+                    >
+                      Counter
+                    </Button>
                     <Button
                       className="flex-1 bg-primary hover:bg-primary/90 text-white"
                       onClick={handleAccept}
