@@ -9,10 +9,18 @@ import { productsService } from "@/lib/api/products.service";
 import { getErrorMessage } from "@/lib/utils";
 import { StatsOverview } from "@/components/seller/StatsOverview";
 import { SellerProductCard } from "@/components/seller/SellerProductCard";
-import { ProductFormModal } from "@/components/seller/ProductFormModal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { IProduct } from "@vaultkix/types";
+import dynamic from "next/dynamic";
+
+const ProductFormModal = dynamic(
+  () =>
+    import("@/components/seller/ProductFormModal").then(
+      (m) => m.ProductFormModal,
+    ),
+  { ssr: false },
+);
 
 type Tab = "overview" | "products";
 

@@ -1,13 +1,22 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useOrderStore } from "@/stores/order.store";
 import { OrderCard } from "@/components/order/OrderCard";
-import { OrderDetailSheet } from "@/components/order/OrderDetailSheet";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingBag } from "lucide-react";
 import type { IOrder } from "@vaultkix/types";
+
+const OrderDetailSheet = dynamic(
+  () =>
+    import("@/components/order/OrderDetailSheet").then(
+      (m) => m.OrderDetailSheet,
+    ),
+  { ssr: false },
+);
 
 function EmptyOrders({ label }: { label: string }) {
   return (

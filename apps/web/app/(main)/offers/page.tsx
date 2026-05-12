@@ -1,14 +1,22 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState, useCallback } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useOfferStore } from "@/stores/offer.store";
 import { OfferCard } from "@/components/offer/OfferCard";
-import { OfferDetailSheet } from "@/components/offer/OfferDetailSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package } from "lucide-react";
 import type { IOffer, OfferUpdateEvent } from "@vaultkix/types";
 import { useOfferRealtime } from "@/hooks/use-offer-realtime";
+
+const OfferDetailSheet = dynamic(
+  () =>
+    import("@/components/offer/OfferDetailSheet").then(
+      (m) => m.OfferDetailSheet,
+    ),
+  { ssr: false },
+);
 
 function EmptyOffers({ label }: { label: string }) {
   return (

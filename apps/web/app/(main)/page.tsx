@@ -11,6 +11,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
 import type { IProduct } from "@vaultkix/types";
 import { useAuthStore } from "@/stores/auth.store";
+import { Metadata } from "next";
+import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "Marketplace",
+  description:
+    "Browse thousands of premium sneakers. Place bids, make offers, and get the best deals on Nike, Jordan, Adidas and more.",
+  openGraph: {
+    title: "VaultKix Marketplace — Shop Premium Sneakers",
+    description:
+      "Browse thousands of premium sneakers. Place bids, make offers, and get the best deals.",
+  },
+};
 
 const CATEGORIES = [
   "All",
@@ -30,11 +43,12 @@ function ProductCard({ product }: { product: IProduct }) {
         {/* Image */}
         <div className="aspect-square bg-section relative overflow-hidden">
           {product.images?.[0] ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={product.images[0]}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">

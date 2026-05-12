@@ -12,6 +12,8 @@ import {
   AlertCircle,
   Check,
 } from "lucide-react";
+import type { Metadata } from "next";
+import { productsService } from "@/lib/api/products.service";
 import { useProductStore } from "@/stores/product.store";
 import { useBidStore } from "@/stores/bid.store";
 import { useOfferStore } from "@/stores/offer.store";
@@ -35,6 +37,7 @@ import type {
   IProduct,
   SafeUser,
 } from "@vaultkix/types";
+import Image from "next/image";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -349,6 +352,39 @@ function MakeOfferModal({
   );
 }
 
+// ── Metadata Generation ─────────────────────────────────────────────────────
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  try {
+    const product = await productsService.getProduct(params.id);
+    return {
+      title: product.name,
+      description: `${product.brand} ${product.name} — Available from ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(product.basePrice)}. Make an offer or place a bid on VaultKix.`,
+      openGraph: {
+        title: `${product.name} | VaultKix`,
+        description: `${product.brand} sneaker available on VaultKix. Min offer: $${product.minimumOfferAmount}`,
+        images: product.images?.[0]
+          ? [{ url: product.images[0], alt: product.name }]
+          : [],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: product.name,
+        images: product.images?.[0] ? [product.images[0]] : [],
+      },
+    };
+  } catch {
+    return {
+      title: "Product Not Found",
+      description: "This product could not be found on VaultKix.",
+    };
+  }
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function ProductDetailPage() {
@@ -466,13 +502,15 @@ export default function ProductDetailPage() {
         {/* ── Left: Images ── */}
         <div className="space-y-3">
           {/* Main image */}
-          <div className="aspect-square bg-section rounded-2xl overflow-hidden border border-border">
+          <div className="aspect-square bg-section rounded-2xl overflow-hidden border border-border relative">
             {hasImages ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={product.images[selectedImage]}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority // ← LCP image, load eagerly
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center gap-2">
@@ -495,11 +533,12 @@ export default function ProductDetailPage() {
                       : "border-transparent"
                   }`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={img}
                     alt={`View ${i + 1}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="64px"
                   />
                 </button>
               ))}
