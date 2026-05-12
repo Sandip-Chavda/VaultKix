@@ -26,6 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getInitials } from "@/lib/utils";
+import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
+import { NotificationBell } from "./NotificationPanel";
 
 export function Navbar() {
   const router = useRouter();
@@ -46,6 +48,8 @@ export function Navbar() {
   };
 
   const isSeller = user?.role === "seller";
+
+  useNotificationRealtime();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-sm">
@@ -110,9 +114,7 @@ export function Navbar() {
               </Link>
 
               {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-              </Button>
+              <NotificationBell />
 
               {/* User menu */}
               <DropdownMenu>
