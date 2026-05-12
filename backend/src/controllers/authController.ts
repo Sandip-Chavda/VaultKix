@@ -218,3 +218,103 @@ export const updateProfile = async (
     errorResponse(res, "Profile update failed", 500, error);
   }
 };
+
+// @desc    Add address ||  @route   POST /api/auth/addresses || @access  Private
+export const addAddress = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = (req as any).user?.userId;
+    const { label, street, city, zip, country, isDefault } = req.body;
+
+    if (!label || !street || !city || !zip || !country) {
+      errorResponse(res, "All address fields are required", 400);
+      return;
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      errorResponse(res, "User not found", 404);
+      return;
+    }
+
+    // If new address is default, unset others
+    if (isDefault) {
+      user.addresses.forEach((a) => {
+        a.isDefault = false;
+      });
+    }
+
+    user.addresses.push({
+      label,
+      street,
+      city,
+      zip,
+      country,
+      isDefault: !!isDefault,
+    });
+    await user.save();
+
+    const updated = await User.findById(userId).select(
+      "-password -refreshToken",
+    );
+    successResponse(res, { user: updated }, "Address added");
+  } catch (error) {
+    errorResponse(res, "Failed to add address", 500, error);
+  }
+};
+
+// @desc    Delete address  ||   @route   DELETE /api/auth/addresses/:addressId  ||  @access  Private
+export const deleteAddress = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = (req as any).user?.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      errorResponse(res, "User not found", 404);
+      return;
+    }
+
+    user.addresses = (user.addresses as any[]).filter(
+      (a) => a._id?.toString() !== req.params.addressId,
+    );
+    await user.save();
+
+    const updated = await User.findById(userId).select(
+      "-password -refreshToken",
+    );
+    successResponse(res, { user: updated }, "Address deleted");
+  } catch (error) {
+    errorResponse(res, "Failed to delete address", 500, error);
+  }
+};
+
+// @desc    Set default address @route  ||  PATCH /api/auth/addresses/:addressId/default  ||  @access  Private
+export const setDefaultAddress = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = (req as any).user?.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      errorResponse(res, "User not found", 404);
+      return;
+    }
+
+    (user.addresses as any[]).forEach((a) => {
+      a.isDefault = a._id?.toString() === req.params.addressId;
+    });
+    await user.save();
+
+    const updated = await User.findById(userId).select(
+      "-password -refreshToken",
+    );
+    successResponse(res, { user: updated }, "Default address updated");
+  } catch (error) {
+    errorResponse(res, "Failed to update default address", 500, error);
+  }
+};

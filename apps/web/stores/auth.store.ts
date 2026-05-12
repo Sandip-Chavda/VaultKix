@@ -48,12 +48,15 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       login: async (payload) => {
         set({ isLoading: true, error: null });
         try {
-          const { user, accessToken, refreshToken } =
+          const { accessToken, refreshToken } =
             await authService.login(payload);
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
-          setAuthCookie(); // ← add this
+          setAuthCookie();
           connectSocket(accessToken);
+
+          // Fetch full user — login response is partial
+          const user = await authService.getMe();
           set({
             user,
             accessToken,
@@ -70,12 +73,15 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       register: async (payload) => {
         set({ isLoading: true, error: null });
         try {
-          const { user, accessToken, refreshToken } =
+          const { accessToken, refreshToken } =
             await authService.register(payload);
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
-          setAuthCookie(); // ← add this
+          setAuthCookie();
           connectSocket(accessToken);
+
+          // Fetch full user — register response is partial
+          const user = await authService.getMe();
           set({
             user,
             accessToken,
