@@ -6,6 +6,7 @@ import { authService } from "@/lib/api/auth.service";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import type { SafeUser, LoginPayload, RegisterPayload } from "@vaultkix/types";
 import { getErrorMessage } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface AuthState {
   user: SafeUser | null;
@@ -64,6 +65,8 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             isAuthenticated: true,
             isLoading: false,
           });
+
+          toast.success(`Welcome back, ${user.username}!`);
         } catch (err) {
           set({ isLoading: false, error: getErrorMessage(err) });
           throw err;
@@ -89,6 +92,8 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             isAuthenticated: true,
             isLoading: false,
           });
+
+          toast.success(`Account created! Welcome to VaultKix.`);
         } catch (err) {
           set({ isLoading: false, error: getErrorMessage(err) });
           throw err;
@@ -98,6 +103,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       logout: async () => {
         try {
           await authService.logout();
+          toast.success("Signed out successfully");
         } catch {
           // fail silently
         } finally {

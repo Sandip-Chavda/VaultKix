@@ -7,6 +7,7 @@ import type {
   OfferDetailResponse,
 } from "@vaultkix/types";
 import { getErrorMessage } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface OfferState {
   sentOffers: IOffer[];
@@ -42,6 +43,7 @@ export const useOfferStore = create<OfferState & OfferActions>()((set) => ({
     try {
       const offer = await offersService.makeOffer(productId, payload);
       set({ isLoading: false });
+      toast.success("Offer sent successfully!");
       return offer;
     } catch (err) {
       set({
@@ -57,6 +59,7 @@ export const useOfferStore = create<OfferState & OfferActions>()((set) => ({
     try {
       await offersService.counterOffer(offerId, payload);
       set({ isLoading: false });
+      toast.success("Counter offer sent!");
     } catch (err) {
       set({
         isLoading: false,
@@ -71,6 +74,7 @@ export const useOfferStore = create<OfferState & OfferActions>()((set) => ({
     try {
       await offersService.acceptOffer(offerId);
       set({ isLoading: false });
+      toast.success("Offer accepted!");
     } catch (err) {
       set({
         isLoading: false,
@@ -85,6 +89,7 @@ export const useOfferStore = create<OfferState & OfferActions>()((set) => ({
     try {
       await offersService.rejectOffer(offerId);
       set({ isLoading: false });
+      toast.success("Offer rejected");
     } catch (err) {
       set({
         isLoading: false,

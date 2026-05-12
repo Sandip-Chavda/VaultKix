@@ -3,6 +3,7 @@ import { ordersService } from "@/lib/api/orders.service";
 import { paymentsService } from "@/lib/api/payments.service";
 import { getErrorMessage } from "@/lib/utils";
 import type { IOrder, UpdateOrderStatusPayload } from "@vaultkix/types";
+import { toast } from "sonner";
 
 interface OrderState {
   buyerOrders: IOrder[];
@@ -62,6 +63,7 @@ export const useOrderStore = create<OrderState & OrderActions>()(
             o._id === orderId ? updated : o,
           ),
         }));
+        toast.success(`Order marked as ${payload.status}`);
       } catch (err) {
         set({ error: getErrorMessage(err) });
         throw err;
@@ -80,6 +82,7 @@ export const useOrderStore = create<OrderState & OrderActions>()(
             o._id === orderId ? updated : o,
           ),
         }));
+        toast.success("Order cancelled");
       } catch (err) {
         set({ error: getErrorMessage(err) });
         throw err;
@@ -108,6 +111,7 @@ export const useOrderStore = create<OrderState & OrderActions>()(
         // Refresh buyer orders after payment
         const orders = await ordersService.getOrders("buyer");
         set({ buyerOrders: orders });
+        toast.success("Payment confirmed!");
       } catch (err) {
         set({ error: getErrorMessage(err) });
         throw err;

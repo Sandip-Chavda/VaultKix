@@ -28,6 +28,7 @@ import {
 import { getInitials } from "@/lib/utils";
 import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
 import { NotificationBell } from "./NotificationPanel";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Navbar() {
   const router = useRouter();
@@ -115,6 +116,8 @@ export function Navbar() {
 
               {/* Notifications */}
               <NotificationBell />
+
+              <ThemeToggle />
 
               {/* User menu */}
               <DropdownMenu>
