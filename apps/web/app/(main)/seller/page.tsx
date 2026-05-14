@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Package, ShoppingBag, Tag, ArrowRight } from "lucide-react";
+import {
+  Plus,
+  Package,
+  ShoppingBag,
+  Tag,
+  ArrowRight,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth.store";
 import { useProductStore } from "@/stores/product.store";
@@ -11,8 +18,10 @@ import { StatsOverview } from "@/components/seller/StatsOverview";
 import { SellerProductCard } from "@/components/seller/SellerProductCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { IProduct } from "@vaultkix/types";
+import type { IAuction, IProduct } from "@vaultkix/types";
 import dynamic from "next/dynamic";
+import { bidsService } from "@/lib/api/bids.service";
+import { AuctionCard } from "@/components/seller/AuctionCard";
 
 const ProductFormModal = dynamic(
   () =>
@@ -22,7 +31,7 @@ const ProductFormModal = dynamic(
   { ssr: false },
 );
 
-type Tab = "overview" | "products";
+type Tab = "overview" | "products" | "auctions";
 
 function ProductGridSkeleton() {
   return (
@@ -44,6 +53,19 @@ export default function SellerDashboard() {
   const [deleteConfirm, setDeleteConfirm] = useState<IProduct | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [auctions, setAuctions] = useState<IAuction[]>([]);
+  const [auctionsLoading, setAuctionsLoading] = useState(false);
+
+  const loadAuctions = useCallback(async () => {
+    setAuctionsLoading(true);
+    try {
+      const data = await bidsService.getMyAuctions();
+      setAuctions(data);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+    setAuctionsLoading(false);
+  }, []);
 
   const loadProducts = useCallback(async () => {
     setIsLoading(true);
@@ -60,6 +82,7 @@ export default function SellerDashboard() {
   const handleTabChange = (newTab: Tab) => {
     setTab(newTab);
     if (newTab === "products") loadProducts();
+    if (newTab === "auctions") loadAuctions();
   };
 
   const handleEdit = (product: IProduct) => {
@@ -115,7 +138,7 @@ export default function SellerDashboard() {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-section rounded-xl p-1 mb-6 w-fit">
-        {(["overview", "products"] as Tab[]).map((t) => (
+        {(["overview", "products", "auctions"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => handleTabChange(t)}
@@ -126,6 +149,11 @@ export default function SellerDashboard() {
             }`}
           >
             {t}
+            {t === "auctions" && auctions.length > 0 && (
+              <span className="ml-1.5 bg-primary text-white text-xs rounded-full px-1.5 py-0.5">
+                {auctions.filter((a) => a.status === "active").length}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -230,6 +258,44 @@ export default function SellerDashboard() {
                   product={product}
                   onEdit={handleEdit}
                   onDelete={(p) => setDeleteConfirm(p)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Auctions Tab ── */}
+      {tab === "auctions" && (
+        <div>
+          {auctionsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-72 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : auctions.length === 0 ? (
+            <div className="text-center py-20">
+              <TrendingUp className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="font-semibold text-dark">No auctions yet</p>
+              <p className="text-sm text-muted-foreground mt-1 mb-4">
+                Create an auction from the Products tab
+              </p>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => handleTabChange("products")}
+              >
+                Go to Products
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {auctions.map((auction) => (
+                <AuctionCard
+                  key={auction._id}
+                  auction={auction}
+                  onCancelled={loadAuctions}
                 />
               ))}
             </div>
