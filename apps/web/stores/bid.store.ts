@@ -1,11 +1,12 @@
 import { create } from "zustand";
 import { bidsService } from "@/lib/api/bids.service";
+import { getErrorMessage } from "@/lib/utils";
 import type {
   IAuction,
   AuctionTimeRemaining,
   BidUpdatedEvent,
+  CreateAuctionPayload,
 } from "@vaultkix/types";
-import { getErrorMessage } from "@/lib/utils";
 
 interface BidState {
   auction: IAuction | null;
@@ -17,6 +18,10 @@ interface BidState {
 
 interface BidActions {
   fetchAuction: (productId: string) => Promise<void>;
+  createAuction: (
+    productId: string,
+    payload: CreateAuctionPayload,
+  ) => Promise<void>;
   placeBid: (productId: string, amount: number) => Promise<void>;
   updateBidRealtime: (data: BidUpdatedEvent) => void;
   clearAuction: () => void;
@@ -41,8 +46,18 @@ export const useBidStore = create<BidState & BidActions>()((set, get) => ({
         isLoading: false,
       });
     } catch {
-      // No auction is a valid state — not an error to surface
       set({ auction: null, isLoading: false });
+    }
+  },
+
+  createAuction: async (productId, payload) => {
+    set({ isLoading: true, error: null });
+    try {
+      const auction = await bidsService.createAuction(productId, payload);
+      set({ auction, isLoading: false });
+    } catch (err) {
+      set({ isLoading: false, error: getErrorMessage(err) });
+      throw err;
     }
   },
 
@@ -52,10 +67,7 @@ export const useBidStore = create<BidState & BidActions>()((set, get) => ({
       const auction = await bidsService.placeBid(productId, amount);
       set({ auction, isLoading: false });
     } catch (err) {
-      set({
-        isLoading: false,
-        error: getErrorMessage(err),
-      });
+      set({ isLoading: false, error: getErrorMessage(err) });
       throw err;
     }
   },
