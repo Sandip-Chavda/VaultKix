@@ -224,7 +224,17 @@ export function CreateOrderModal({
         router.push("/orders");
       }, 1500);
     } catch (err) {
-      setError(getErrorMessage(err));
+      const msg = getErrorMessage(err);
+      // Order already exists for this offer
+      if (msg.toLowerCase().includes("already exists")) {
+        startTransition(() => setSuccess(true));
+        setTimeout(() => {
+          onClose();
+          router.push("/orders");
+        }, 1500);
+      } else {
+        setError(msg);
+      }
     }
     setIsLoading(false);
   };

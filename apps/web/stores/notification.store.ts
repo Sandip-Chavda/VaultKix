@@ -16,6 +16,7 @@ interface NotificationActions {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
+  deleteAllNotifications: () => Promise<void>; // ← add this
   addNotification: (notification: INotification) => void;
   clearError: () => void;
 }
@@ -95,6 +96,15 @@ export const useNotificationStore = create<
       notifications: [notification, ...state.notifications],
       unreadCount: state.unreadCount + 1,
     }));
+  },
+
+  deleteAllNotifications: async () => {
+    try {
+      await notificationsService.deleteAllNotifications();
+      set({ notifications: [], unreadCount: 0 });
+    } catch (err) {
+      set({ error: getErrorMessage(err) });
+    }
   },
 
   clearError: () => set({ error: null }),

@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNotificationStore } from "@/stores/notification.store";
 import { formatRelativeTime } from "@/lib/utils";
 import type { INotification, NotificationType } from "@vaultkix/types";
+import Link from "next/link";
 
 // ── Notification icon by type ─────────────────────────────────────────────────
 
@@ -181,6 +182,16 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="border-t border-border px-4 py-2">
+        <Link
+          href="/notifications"
+          className="text-sm text-primary font-medium hover:underline flex items-center justify-center gap-1 py-1"
+          onClick={onClose}
+        >
+          See all notifications
+        </Link>
       </div>
     </div>
   );
