@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Search,
   Bell,
@@ -35,6 +35,13 @@ export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Inside Navbar component
+  const pathname = usePathname();
+
+  // Helper
+  const isActive = (path: string) =>
+    pathname === path || pathname.startsWith(path + "/");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,14 +89,22 @@ export function Navbar() {
         <nav className="hidden md:flex items-center gap-1">
           <Link
             href="/"
-            className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
+              pathname === "/"
+                ? "text-primary bg-primary-light"
+                : "text-muted-foreground hover:text-primary"
+            }`}
           >
             Marketplace
           </Link>
           {isSeller && (
             <Link
               href="/seller"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
+                isActive("/seller")
+                  ? "text-primary bg-primary-light"
+                  : "text-muted-foreground hover:text-primary"
+              }`}
             >
               Dashboard
             </Link>

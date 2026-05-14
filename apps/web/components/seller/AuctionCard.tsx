@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { TrendingUp, Clock, Eye, X, Package, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import type { IAuction, IProduct } from "@vaultkix/types";
 // ── Countdown ─────────────────────────────────────────────────────────────────
 
 function useCountdown(endsAt: string) {
-  const [timeLeft, setTimeLeft] = useState(() => {
+  const calc = () => {
     const diff = new Date(endsAt).getTime() - Date.now();
     if (diff <= 0) return { days: 0, hours: 0, minutes: 0, expired: true };
     return {
@@ -22,25 +22,18 @@ function useCountdown(endsAt: string) {
       minutes: Math.floor((diff % 3600000) / 60000),
       expired: false,
     };
-  });
+  };
 
-  useState(() => {
+  const [timeLeft, setTimeLeft] = useState(calc);
+
+  useEffect(() => {
     const id = setInterval(() => {
-      const diff = new Date(endsAt).getTime() - Date.now();
-      if (diff <= 0) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, expired: true });
-        clearInterval(id);
-        return;
-      }
-      setTimeLeft({
-        days: Math.floor(diff / 86400000),
-        hours: Math.floor((diff % 86400000) / 3600000),
-        minutes: Math.floor((diff % 3600000) / 60000),
-        expired: false,
-      });
-    }, 60000); // update every minute
+      const next = calc();
+      setTimeLeft(next);
+      if (next.expired) clearInterval(id);
+    }, 60000);
     return () => clearInterval(id);
-  });
+  }, [endsAt]);
 
   return timeLeft;
 }

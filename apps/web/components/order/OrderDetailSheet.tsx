@@ -24,6 +24,7 @@ import { useOrderStore } from "@/stores/order.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { IOrder, IProduct, SafeUser, OrderStatus } from "@vaultkix/types";
+import { OrderTimeline } from "./OrderTimeline";
 
 // ── Status transition options for seller ─────────────────────────────────────
 
@@ -383,6 +384,14 @@ export function OrderDetailSheet({
                 </p>
               </div>
               <OrderStatusBadge status={order.status} />
+            </div>
+
+            {/* Order timeline */}
+            <div>
+              <p className="text-sm font-semibold text-dark mb-3">
+                Order Progress
+              </p>
+              <OrderTimeline status={order.status} type={order.type} />
             </div>
 
             {/* Parties */}
