@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OfferThread } from "./OfferThread";
 import { OfferStatusBadge } from "./OfferStatusBadge";
+import { CreateOrderModal } from "@/components/order/CreateOrderModal";
 import { useOfferStore } from "@/stores/offer.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useOfferRealtime } from "@/hooks/use-offer-realtime";
@@ -87,6 +88,7 @@ export function OfferDetailSheet({
   const [counterAmount, setCounterAmount] = useState("");
   const [showCounter, setShowCounter] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   const timeLeft = useExpiryCountdown(selectedOffer?.offer?.expiresAt ?? null);
@@ -185,192 +187,217 @@ export function OfferDetailSheet({
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="mb-4">
-          <SheetTitle>Offer Details</SheetTitle>
-        </SheetHeader>
+    <>
+      <Sheet open={open} onOpenChange={onClose}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader className="mb-4">
+            <SheetTitle>Offer Details</SheetTitle>
+          </SheetHeader>
 
-        {!fullOffer ? (
-          <div className="space-y-4">
-            <Skeleton className="h-24 w-full rounded-xl" />
-            <Skeleton className="h-32 w-full rounded-xl" />
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {/* Product card */}
-            <div className="bg-primary rounded-xl p-4 text-white">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
-                  {product?.images?.[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <ShoppingBag className="w-5 h-5" />
-                  )}
+          {!fullOffer ? (
+            <div className="space-y-4">
+              <Skeleton className="h-24 w-full rounded-xl" />
+              <Skeleton className="h-32 w-full rounded-xl" />
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {/* Product card */}
+              <div className="bg-primary rounded-xl p-4 text-white">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+                    {product?.images?.[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <ShoppingBag className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm leading-snug line-clamp-2">
+                      {product?.name ?? "Product"}
+                    </p>
+                    <p className="text-purple-200 text-xs mt-0.5">
+                      {product?.category} · Qty: {fullOffer.quantity}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm leading-snug line-clamp-2">
-                    {product?.name ?? "Product"}
-                  </p>
-                  <p className="text-purple-200 text-xs mt-0.5">
-                    {product?.category} · Qty: {fullOffer.quantity}
-                  </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/10 rounded-lg p-2">
+                    <p className="text-purple-200 text-xs">Size</p>
+                    <p className="font-semibold text-sm">
+                      {fullOffer.variant.size || "—"}
+                    </p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-2">
+                    <p className="text-purple-200 text-xs">List price</p>
+                    <p className="font-semibold text-sm">
+                      {formatCurrency(product?.basePrice ?? 0)}
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-white/10 rounded-lg p-2">
-                  <p className="text-purple-200 text-xs">Size</p>
-                  <p className="font-semibold text-sm">
-                    {fullOffer.variant.size || "—"}
-                  </p>
-                </div>
-                <div className="bg-white/10 rounded-lg p-2">
-                  <p className="text-purple-200 text-xs">List price</p>
-                  <p className="font-semibold text-sm">
-                    {formatCurrency(product?.basePrice ?? 0)}
-                  </p>
-                </div>
+
+              {/* Status + expiry */}
+              <div className="flex items-center justify-between">
+                <OfferStatusBadge status={fullOffer.currentStatus} />
+                {canAct && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Clock className="w-3 h-3" />
+                    Expires in{" "}
+                    <span className="font-semibold text-dark">
+                      {String(timeLeft.hours).padStart(2, "0")}:
+                      {String(timeLeft.minutes).padStart(2, "0")}:
+                      {String(timeLeft.seconds).padStart(2, "0")}
+                    </span>
+                  </div>
+                )}
               </div>
-            </div>
 
-            {/* Status + expiry */}
-            <div className="flex items-center justify-between">
-              <OfferStatusBadge status={fullOffer.currentStatus} />
-              {canAct && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock className="w-3 h-3" />
-                  Expires in{" "}
-                  <span className="font-semibold text-dark">
-                    {String(timeLeft.hours).padStart(2, "0")}:
-                    {String(timeLeft.minutes).padStart(2, "0")}:
-                    {String(timeLeft.seconds).padStart(2, "0")}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Offer thread */}
-            <div>
-              <p className="text-sm font-semibold text-dark mb-3">
-                Negotiation Thread
-              </p>
-              <OfferThread thread={fullOffer.thread} />
-            </div>
-
-            {/* Final amount if closed */}
-            {fullOffer.finalAmount && (
-              <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
-                <p className="text-xs text-muted-foreground">Agreed price</p>
-                <p className="text-2xl font-bold text-success">
-                  {formatCurrency(fullOffer.finalAmount)}
+              {/* Offer thread */}
+              <div>
+                <p className="text-sm font-semibold text-dark mb-3">
+                  Negotiation Thread
                 </p>
+                <OfferThread thread={fullOffer.thread} />
               </div>
-            )}
 
-            {/* Feedback */}
-            {error && (
-              <p className="text-destructive text-sm flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" /> {error}
-              </p>
-            )}
-            {actionSuccess && (
-              <p className="text-success text-sm flex items-center gap-1">
-                <Check className="w-3.5 h-3.5" /> {actionSuccess}
-              </p>
-            )}
-
-            {/* Actions — my turn */}
-            {canAct && isMyTurn && (
-              <div className="space-y-2 pt-1">
-                {showCounter ? (
+              {/* ── Accepted: show agreed price + Create Order for buyer ── */}
+              {fullOffer.currentStatus === "accepted" &&
+                fullOffer.finalAmount && (
                   <div className="space-y-2">
-                    <Label>Counter offer amount</Label>
-                    <Input
-                      type="number"
-                      placeholder="Enter amount"
-                      value={counterAmount}
-                      onChange={(e) => {
-                        clearError();
-                        setCounterAmount(e.target.value);
-                      }}
-                    />
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
+                      <p className="text-xs text-muted-foreground">
+                        Agreed price
+                      </p>
+                      <p className="text-2xl font-bold text-success">
+                        {formatCurrency(fullOffer.finalAmount)}
+                      </p>
+                    </div>
+
+                    {myActualRole === "buyer" && (
+                      <Button
+                        className="w-full bg-primary hover:bg-primary/90 text-white"
+                        onClick={() => setCreateOrderOpen(true)}
+                      >
+                        Create Order
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+              {/* Feedback */}
+              {error && (
+                <p className="text-destructive text-sm flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> {error}
+                </p>
+              )}
+              {actionSuccess && (
+                <p className="text-success text-sm flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" /> {actionSuccess}
+                </p>
+              )}
+
+              {/* Actions — my turn */}
+              {canAct && isMyTurn && (
+                <div className="space-y-2 pt-1">
+                  {showCounter ? (
+                    <div className="space-y-2">
+                      <Label>Counter offer amount</Label>
+                      <Input
+                        type="number"
+                        placeholder="Enter amount"
+                        value={counterAmount}
+                        onChange={(e) => {
+                          clearError();
+                          setCounterAmount(e.target.value);
+                        }}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => setShowCounter(false)}
+                          disabled={isLoading}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          className="flex-1 bg-primary hover:bg-primary/90 text-white"
+                          onClick={handleCounter}
+                          disabled={isLoading || !counterAmount}
+                        >
+                          {isLoading ? "Sending..." : "Send Counter"}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
-                        className="flex-1"
-                        onClick={() => setShowCounter(false)}
+                        className="flex-1 border-destructive text-destructive hover:bg-red-50"
+                        onClick={handleReject}
                         disabled={isLoading}
                       >
-                        Cancel
+                        Reject
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 border-primary text-primary hover:bg-primary-light"
+                        onClick={() => setShowCounter(true)}
+                        disabled={isLoading}
+                      >
+                        Counter
                       </Button>
                       <Button
                         className="flex-1 bg-primary hover:bg-primary/90 text-white"
-                        onClick={handleCounter}
-                        disabled={isLoading || !counterAmount}
+                        onClick={handleAccept}
+                        disabled={isLoading}
                       >
-                        {isLoading ? "Sending..." : "Send Counter"}
+                        Accept
                       </Button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 border-destructive text-destructive hover:bg-red-50"
-                      onClick={handleReject}
-                      disabled={isLoading}
-                    >
-                      Reject
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1 border-primary text-primary hover:bg-primary-light"
-                      onClick={() => setShowCounter(true)}
-                      disabled={isLoading}
-                    >
-                      Counter
-                    </Button>
-                    <Button
-                      className="flex-1 bg-primary hover:bg-primary/90 text-white"
-                      onClick={handleAccept}
-                      disabled={isLoading}
-                    >
-                      Accept
-                    </Button>
-                  </div>
-                )}
-                <p className="text-xs text-center text-muted-foreground">
-                  {fullOffer.offersLeft} offer exchanges remaining
-                </p>
-              </div>
-            )}
+                  )}
+                  <p className="text-xs text-center text-muted-foreground">
+                    {fullOffer.offersLeft} offer exchanges remaining
+                  </p>
+                </div>
+              )}
 
-            {/* Waiting state */}
-            {canAct && !isMyTurn && (
-              <div className="bg-section rounded-xl p-3 text-center border border-border">
-                <p className="text-sm font-semibold text-dark mb-0.5">
-                  Waiting for {myActualRole === "buyer" ? "seller" : "buyer"} to
-                  respond
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Last offer:{" "}
-                  <span className="font-semibold text-primary">
-                    {formatCurrency(
-                      fullOffer.thread[fullOffer.thread.length - 1]?.amount ??
-                        0,
-                    )}
-                  </span>
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </SheetContent>
-    </Sheet>
+              {/* Waiting state */}
+              {canAct && !isMyTurn && (
+                <div className="bg-section rounded-xl p-3 text-center border border-border">
+                  <p className="text-sm font-semibold text-dark mb-0.5">
+                    Waiting for {myActualRole === "buyer" ? "seller" : "buyer"}{" "}
+                    to respond
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Last offer:{" "}
+                    <span className="font-semibold text-primary">
+                      {formatCurrency(
+                        fullOffer.thread[fullOffer.thread.length - 1]?.amount ??
+                          0,
+                      )}
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Create Order Modal — outside Sheet to avoid nesting issues */}
+      {fullOffer && (
+        <CreateOrderModal
+          open={createOrderOpen}
+          onClose={() => setCreateOrderOpen(false)}
+          offer={fullOffer}
+        />
+      )}
+    </>
   );
 }
