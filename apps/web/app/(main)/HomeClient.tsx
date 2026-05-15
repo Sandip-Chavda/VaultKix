@@ -12,6 +12,7 @@ import { formatCurrency } from "@/lib/utils";
 import type { IProduct } from "@vaultkix/types";
 import { useAuthStore } from "@/stores/auth.store";
 import Image from "next/image";
+import { FiltersPanel } from "@/components/product/FiltersPanel";
 
 const CATEGORIES = [
   "All",
@@ -102,6 +103,13 @@ export default function HomePage() {
 
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeBrand, setActiveBrand] = useState<string | null>(null);
+  const [extraFilters, setExtraFilters] = useState<{
+    minPrice?: number;
+    maxPrice?: number;
+    size?: string;
+    color?: string;
+  }>({});
+
   const { isAuthenticated, user } = useAuthStore();
 
   const searchQuery = searchParams.get("search") ?? undefined;
@@ -111,16 +119,21 @@ export default function HomePage() {
       search: searchQuery,
       category: activeCategory === "All" ? undefined : activeCategory,
       brand: activeBrand ?? undefined,
+      ...extraFilters,
       page: 1,
     });
-  }, [searchQuery, activeCategory, activeBrand, fetchProducts]);
+  }, [searchQuery, activeCategory, activeBrand, extraFilters, fetchProducts]);
 
   const clearFilters = () => {
     setActiveCategory("All");
     setActiveBrand(null);
+    setExtraFilters({});
   };
 
-  const hasActiveFilters = activeCategory !== "All" || activeBrand !== null;
+  const hasActiveFilters =
+    activeCategory !== "All" ||
+    activeBrand !== null ||
+    Object.values(extraFilters).some(Boolean);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
@@ -266,9 +279,10 @@ export default function HomePage() {
                 {pagination.total} results
               </span>
             )}
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
-            </Button>
+            <FiltersPanel
+              onApply={(f) => setExtraFilters(f)}
+              onClear={() => setExtraFilters({})}
+            />
           </div>
         </div>
 

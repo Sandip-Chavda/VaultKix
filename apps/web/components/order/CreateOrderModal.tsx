@@ -11,7 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Check, Package, Truck, Vault } from "lucide-react";
+import {
+  AlertCircle,
+  Archive,
+  Check,
+  Package,
+  Truck,
+  Vault,
+} from "lucide-react";
 import { useOrderStore } from "@/stores/order.store";
 import { ordersService } from "@/lib/api/orders.service";
 import { useAuthStore } from "@/stores/auth.store";
@@ -317,7 +324,7 @@ export function CreateOrderModal({
                         : "border-border hover:border-primary/50"
                     }`}
                   >
-                    <Vault
+                    <Archive
                       className={`w-5 h-5 mb-1.5 ${
                         orderType === "position"
                           ? "text-primary"

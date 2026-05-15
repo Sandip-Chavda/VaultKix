@@ -11,6 +11,7 @@ import {
   ShoppingBag,
   AlertCircle,
   Check,
+  LayoutDashboard,
 } from "lucide-react";
 import { useProductStore } from "@/stores/product.store";
 import { useBidStore } from "@/stores/bid.store";
@@ -23,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BidHistory } from "@/components/bid/BidHistory";
+import { CreateAuctionModal } from "@/components/seller/CreateAuctionModal";
 import {
   Dialog,
   DialogContent,
@@ -78,7 +80,7 @@ function useCountdown(endsAt: string | null) {
   return timeLeft;
 }
 
-// ── Auction Section ───────────────────────────────────────────────────────────
+// ── Auction Section (buyer only) ──────────────────────────────────────────────
 
 function AuctionSection({ productId }: { productId: string }) {
   const { auction, isLoading, error, placeBid, clearError } = useBidStore();
@@ -99,9 +101,7 @@ function AuctionSection({ productId }: { productId: string }) {
       setBidAmount("");
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch {
-      // error shown from store
-    }
+    } catch {}
   };
 
   if (isLoading) return <Skeleton className="h-48 w-full rounded-xl" />;
@@ -119,7 +119,6 @@ function AuctionSection({ productId }: { productId: string }) {
         </Badge>
       </div>
 
-      {/* Stats row */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-background rounded-lg p-3">
           <p className="text-xs text-muted-foreground mb-0.5">Current bid</p>
@@ -135,7 +134,6 @@ function AuctionSection({ productId }: { productId: string }) {
         </div>
       </div>
 
-      {/* Countdown */}
       <div>
         <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
           <Clock className="w-3 h-3" /> Time remaining
@@ -160,7 +158,6 @@ function AuctionSection({ productId }: { productId: string }) {
         </div>
       </div>
 
-      {/* Place bid */}
       {isAuthenticated ? (
         <div className="space-y-2">
           {error && (
@@ -230,9 +227,8 @@ function MakeOfferModal({
   const handleSubmit = async () => {
     const offerAmount = parseFloat(amount);
     if (isNaN(offerAmount)) return;
-
     try {
-      const offer = await makeOffer(product._id, {
+      await makeOffer(product._id, {
         amount: offerAmount,
         variant: {
           type: selectedVariant?.type ?? "",
@@ -244,11 +240,9 @@ function MakeOfferModal({
       setSuccess(true);
       setTimeout(() => {
         onClose();
-        router.push(`/offers`);
+        router.push("/offers");
       }, 1500);
-    } catch {
-      // error in store
-    }
+    } catch {}
   };
 
   return (
@@ -259,7 +253,6 @@ function MakeOfferModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Product summary */}
           <div className="bg-primary rounded-xl p-4 text-white">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
@@ -325,7 +318,6 @@ function MakeOfferModal({
                   }}
                 />
               </div>
-
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -371,9 +363,11 @@ export default function ProductDetailPage() {
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [offerOpen, setOfferOpen] = useState(false);
+  const [auctionModalOpen, setAuctionModalOpen] = useState(false);
 
   const selectedVariant = product?.variants?.[selectedVariantIdx] ?? null;
 
+  // Single effect — no duplicates
   useEffect(() => {
     fetchProduct(productId);
     fetchAuction(productId);
@@ -388,34 +382,14 @@ export default function ProductDetailPage() {
     fetchSentOffers,
   ]);
 
-  // Derive existing offer for this product
-  const existingOffer = sentOffers.find(
-    (o) =>
-      (typeof o.productId === "string" ? o.productId : o.productId._id) ===
-        productId && o.currentStatus === "negotiating",
-  );
-
-  // Load product + auction
-  useEffect(() => {
-    fetchProduct(productId);
-    fetchAuction(productId);
-
-    return () => {
-      clearAuction();
-    };
-  }, [productId, fetchProduct, fetchAuction, clearAuction]);
-
-  // Socket — join product room for live bids
+  // Socket — live bid updates
   useEffect(() => {
     if (!isAuthenticated) return;
     const socket = getSocket();
-
     socket.emit("join:product", productId);
-
     socket.on("bid:updated", (data: BidUpdatedEvent) => {
       updateBidRealtime(data);
     });
-
     return () => {
       socket.emit("leave:product", productId);
       socket.off("bid:updated");
@@ -455,9 +429,14 @@ export default function ProductDetailPage() {
     ),
   ];
 
+  const existingOffer = sentOffers.find(
+    (o) =>
+      (typeof o.productId === "string" ? o.productId : o.productId._id) ===
+        productId && o.currentStatus === "negotiating",
+  );
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      {/* Back */}
       <Link
         href="/"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors"
@@ -468,7 +447,6 @@ export default function ProductDetailPage() {
       <div className="grid md:grid-cols-2 gap-8">
         {/* ── Left: Images ── */}
         <div className="space-y-3">
-          {/* Main image */}
           <div className="aspect-square bg-section rounded-2xl overflow-hidden border border-border relative">
             {hasImages ? (
               <Image
@@ -487,7 +465,6 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Thumbnails */}
           {hasImages && product.images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">
               {product.images.map((img, i) => (
@@ -565,7 +542,7 @@ export default function ProductDetailPage() {
             </span>
           </div>
 
-          {/* Variants — Type */}
+          {/* Type */}
           {uniqueTypes.length > 0 && (
             <div className="space-y-2">
               <Label>Type</Label>
@@ -592,7 +569,7 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Variants — Size */}
+          {/* Size */}
           {uniqueSizes.length > 0 && (
             <div className="space-y-2">
               <Label>Size (UK)</Label>
@@ -651,22 +628,74 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Live Auction */}
-          <AuctionSection productId={productId} />
-
-          {/* Bid History — shown when auction exists */}
-          {auction && (
-            <BidHistory
-              productId={productId}
-              totalBidsCount={auction.totalBidsCount}
-            />
+          {/* ── Auction section — seller vs buyer ── */}
+          {isOwnProduct ? (
+            <div className="border border-border rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                <p className="font-semibold text-dark text-sm">Auction</p>
+              </div>
+              {auction ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-section rounded-lg p-2">
+                      <p className="text-xs text-muted-foreground">
+                        Current bid
+                      </p>
+                      <p className="font-bold text-dark">
+                        {formatCurrency(auction.currentHighestBid)}
+                      </p>
+                    </div>
+                    <div className="bg-section rounded-lg p-2">
+                      <p className="text-xs text-muted-foreground">
+                        Total bids
+                      </p>
+                      <p className="font-bold text-dark">
+                        {auction.totalBidsCount}
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/seller">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-1.5"
+                    >
+                      <LayoutDashboard className="w-3.5 h-3.5" />
+                      Manage in Dashboard
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="text-center py-2">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    No active auction for this product
+                  </p>
+                  <Button
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90 text-white gap-1.5"
+                    onClick={() => setAuctionModalOpen(true)}
+                  >
+                    <TrendingUp className="w-3.5 h-3.5" /> Create Auction
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <AuctionSection productId={productId} />
+              {auction && (
+                <BidHistory
+                  productId={productId}
+                  totalBidsCount={auction.totalBidsCount}
+                />
+              )}
+            </>
           )}
 
-          {/* CTA Buttons */}
-
+          {/* ── CTA Buttons ── */}
           <div className="flex flex-col gap-2 pt-1">
             {isOwnProduct ? (
-              // Seller viewing their own product
               <div className="bg-section rounded-xl p-3 text-center border border-border">
                 <p className="text-sm text-muted-foreground">
                   This is your product listing
@@ -674,7 +703,6 @@ export default function ProductDetailPage() {
               </div>
             ) : isAuthenticated ? (
               existingOffer ? (
-                // buyer already has active negotiating offer
                 <div className="space-y-2">
                   <div className="bg-section rounded-xl p-3 border border-primary/20">
                     <div className="flex items-center justify-between mb-1">
@@ -716,7 +744,6 @@ export default function ProductDetailPage() {
                   </Link>
                 </div>
               ) : (
-                // No active offer — can make a new one
                 <Button
                   className="w-full bg-primary hover:bg-primary/90 text-white h-11"
                   onClick={() => setOfferOpen(true)}
@@ -783,6 +810,19 @@ export default function ProductDetailPage() {
         selectedVariant={selectedVariant}
         quantity={quantity}
       />
+
+      {/* Create Auction Modal — seller only */}
+      {isOwnProduct && (
+        <CreateAuctionModal
+          open={auctionModalOpen}
+          onClose={() => setAuctionModalOpen(false)}
+          product={product}
+          onSuccess={() => {
+            setAuctionModalOpen(false);
+            fetchAuction(productId);
+          }}
+        />
+      )}
     </div>
   );
 }

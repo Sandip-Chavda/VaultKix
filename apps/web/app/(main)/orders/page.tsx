@@ -8,7 +8,8 @@ import { OrderCard } from "@/components/order/OrderCard";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingBag } from "lucide-react";
-import type { IOrder } from "@vaultkix/types";
+import type { IOrder, OrderUpdatedEvent } from "@vaultkix/types";
+import { useOrderRealtime } from "@/hooks/use-order-realtime";
 
 const OrderDetailSheet = dynamic(
   () =>
@@ -70,6 +71,16 @@ export default function OrdersPage() {
     fetchBuyerOrders();
     if (isSeller) fetchSellerOrders();
   }, [fetchBuyerOrders, fetchSellerOrders, isSeller]);
+
+  // Refresh orders on real-time status update
+  useOrderRealtime({
+    onEvent: useCallback(
+      (_event: OrderUpdatedEvent) => {
+        loadOrders();
+      },
+      [loadOrders],
+    ),
+  });
 
   useEffect(() => {
     loadOrders();
