@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BidHistory } from "@/components/bid/BidHistory";
 import {
   Dialog,
   DialogContent,
@@ -361,7 +362,8 @@ export default function ProductDetailPage() {
     isLoading,
     fetchProduct,
   } = useProductStore();
-  const { fetchAuction, updateBidRealtime, clearAuction } = useBidStore();
+  const { fetchAuction, updateBidRealtime, clearAuction, auction } =
+    useBidStore();
   const { isAuthenticated, user } = useAuthStore();
   const { sentOffers, fetchSentOffers } = useOfferStore();
 
@@ -651,6 +653,14 @@ export default function ProductDetailPage() {
 
           {/* Live Auction */}
           <AuctionSection productId={productId} />
+
+          {/* Bid History — shown when auction exists */}
+          {auction && (
+            <BidHistory
+              productId={productId}
+              totalBidsCount={auction.totalBidsCount}
+            />
+          )}
 
           {/* CTA Buttons */}
 
