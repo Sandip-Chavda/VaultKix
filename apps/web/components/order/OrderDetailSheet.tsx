@@ -321,7 +321,7 @@ export function OrderDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto px-4 sm:px-6">
         <SheetHeader className="mb-4">
           <SheetTitle>Order Details</SheetTitle>
         </SheetHeader>

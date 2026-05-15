@@ -5,14 +5,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Search,
-  Bell,
   ShoppingCart,
-  User,
   Menu,
   X,
   LogOut,
   Package,
   LayoutDashboard,
+  User,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
@@ -32,14 +31,14 @@ import { ThemeToggle } from "./ThemeToggle";
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
-  // Inside Navbar component
-  const pathname = usePathname();
+  useNotificationRealtime();
 
-  // Helper
   const isActive = (path: string) =>
     pathname === path || pathname.startsWith(path + "/");
 
@@ -47,6 +46,7 @@ export function Navbar() {
     e.preventDefault();
     if (search.trim()) {
       router.push(`/?search=${encodeURIComponent(search.trim())}`);
+      setMobileSearchOpen(false);
     }
   };
 
@@ -57,11 +57,9 @@ export function Navbar() {
 
   const isSeller = user?.role === "seller";
 
-  useNotificationRealtime();
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-3">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
@@ -72,8 +70,11 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Search */}
-        <form onSubmit={handleSearch} className="flex-1 max-w-xl">
+        {/* Search — hidden on mobile */}
+        <form
+          onSubmit={handleSearch}
+          className="flex-1 max-w-xl hidden sm:block"
+        >
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -112,29 +113,35 @@ export function Navbar() {
         </nav>
 
         {/* Right actions */}
-        <div className="flex items-center gap-2 ml-auto shrink-0">
+        <div className="flex items-center gap-1.5 ml-auto shrink-0">
+          {/* Mobile search icon */}
+          <button
+            className="sm:hidden w-9 h-9 rounded-lg flex items-center justify-center hover:bg-section transition-colors"
+            onClick={() => {
+              setMobileSearchOpen((v) => !v);
+              setMobileOpen(false);
+            }}
+          >
+            <Search className="w-5 h-5 text-dark" />
+          </button>
+
           {isAuthenticated ? (
             <>
-              {/* Offers */}
-              <Link href="/offers">
-                <Button variant="ghost" size="icon" className="relative">
+              <Link href="/offers" className="hidden sm:block">
+                <Button variant="ghost" size="icon">
                   <Package className="w-5 h-5" />
                 </Button>
               </Link>
 
-              {/* Orders */}
-              <Link href="/orders">
+              <Link href="/orders" className="hidden sm:block">
                 <Button variant="ghost" size="icon">
                   <ShoppingCart className="w-5 h-5" />
                 </Button>
               </Link>
 
-              {/* Notifications */}
               <NotificationBell />
-
               <ThemeToggle />
 
-              {/* User menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="outline-none">
@@ -180,12 +187,13 @@ export function Navbar() {
             </>
           ) : (
             <>
+              <ThemeToggle />
               <Link href="/login">
                 <Button variant="outline" size="sm">
                   Sign in
                 </Button>
               </Link>
-              <Link href="/register">
+              <Link href="/register" className="hidden sm:block">
                 <Button
                   size="sm"
                   className="bg-primary hover:bg-primary/90 text-white"
@@ -201,7 +209,10 @@ export function Navbar() {
             variant="ghost"
             size="icon"
             className="md:hidden"
-            onClick={() => setMobileOpen((v) => !v)}
+            onClick={() => {
+              setMobileOpen((v) => !v);
+              setMobileSearchOpen(false);
+            }}
           >
             {mobileOpen ? (
               <X className="w-5 h-5" />
@@ -212,12 +223,32 @@ export function Navbar() {
         </div>
       </div>
 
+      {/* Mobile search bar */}
+      {mobileSearchOpen && (
+        <div className="sm:hidden border-t border-border bg-background px-4 py-2">
+          <form onSubmit={handleSearch}>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search sneakers, brands..."
+                className="pl-9 bg-section border-transparent focus:border-primary"
+              />
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-background px-4 py-3 flex flex-col gap-2">
+        <div className="md:hidden border-t border-border bg-background px-4 py-3 flex flex-col gap-1">
           <Link
             href="/"
-            className="py-2 text-sm font-medium text-dark"
+            className={`py-2.5 px-3 text-sm font-medium rounded-lg ${
+              pathname === "/" ? "text-primary bg-primary-light" : "text-dark"
+            }`}
             onClick={() => setMobileOpen(false)}
           >
             Marketplace
@@ -226,22 +257,45 @@ export function Navbar() {
             <>
               <Link
                 href="/offers"
-                className="py-2 text-sm font-medium text-dark"
+                className={`py-2.5 px-3 text-sm font-medium rounded-lg ${
+                  isActive("/offers")
+                    ? "text-primary bg-primary-light"
+                    : "text-dark"
+                }`}
                 onClick={() => setMobileOpen(false)}
               >
                 My Offers
               </Link>
               <Link
                 href="/orders"
-                className="py-2 text-sm font-medium text-dark"
+                className={`py-2.5 px-3 text-sm font-medium rounded-lg ${
+                  isActive("/orders")
+                    ? "text-primary bg-primary-light"
+                    : "text-dark"
+                }`}
                 onClick={() => setMobileOpen(false)}
               >
                 My Orders
               </Link>
+              <Link
+                href="/notifications"
+                className={`py-2.5 px-3 text-sm font-medium rounded-lg ${
+                  isActive("/notifications")
+                    ? "text-primary bg-primary-light"
+                    : "text-dark"
+                }`}
+                onClick={() => setMobileOpen(false)}
+              >
+                Notifications
+              </Link>
               {isSeller && (
                 <Link
                   href="/seller"
-                  className="py-2 text-sm font-medium text-dark"
+                  className={`py-2.5 px-3 text-sm font-medium rounded-lg ${
+                    isActive("/seller")
+                      ? "text-primary bg-primary-light"
+                      : "text-dark"
+                  }`}
                   onClick={() => setMobileOpen(false)}
                 >
                   Seller Dashboard

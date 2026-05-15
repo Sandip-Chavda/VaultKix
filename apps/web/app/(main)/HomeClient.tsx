@@ -28,7 +28,6 @@ function ProductCard({ product }: { product: IProduct }) {
   return (
     <Link href={`/products/${product._id}`}>
       <div className="bg-background rounded-xl border border-border overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
-        {/* Image */}
         <div className="aspect-square bg-section relative overflow-hidden">
           {product.images?.[0] ? (
             <Image
@@ -48,22 +47,21 @@ function ProductCard({ product }: { product: IProduct }) {
           </Badge>
         </div>
 
-        {/* Info */}
-        <div className="p-3">
-          <p className="text-xs text-muted-foreground mb-0.5">
+        <div className="p-2.5 md:p-3">
+          <p className="text-[10px] md:text-xs text-muted-foreground mb-0.5">
             {product.category}
           </p>
-          <h3 className="font-semibold text-dark text-sm leading-snug line-clamp-2 mb-2">
+          <h3 className="font-semibold text-dark text-xs md:text-sm leading-snug line-clamp-2 mb-1.5 md:mb-2">
             {product.name}
           </h3>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">From</p>
-              <p className="font-bold text-dark">
+              <p className="text-[10px] text-muted-foreground">From</p>
+              <p className="font-bold text-dark text-sm">
                 {formatCurrency(product.basePrice)}
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-right hidden sm:block">
               <p className="text-xs text-muted-foreground">Min offer</p>
               <p className="text-sm font-medium text-primary">
                 {formatCurrency(product.minimumOfferAmount)}
@@ -104,16 +102,9 @@ export default function HomePage() {
 
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeBrand, setActiveBrand] = useState<string | null>(null);
-
   const { isAuthenticated, user } = useAuthStore();
 
-  // Sync search param from navbar
   const searchQuery = searchParams.get("search") ?? undefined;
-
-  useEffect(() => {
-    console.log("products:", products);
-    console.log("pagination:", pagination);
-  }, [products, pagination]);
 
   useEffect(() => {
     fetchProducts({
@@ -134,40 +125,39 @@ export default function HomePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
       {/* Hero */}
-      <section className="relative min-h-[280px] md:min-h-[320px] mb-4">
-        {/* Purple background box — clipped separately */}
+      <section className="relative min-h-[220px] md:min-h-[320px] mb-4">
+        {/* Background */}
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary via-purple-600 to-purple-800 overflow-hidden">
-          {/* Decorative circles inside the box */}
           <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
           <div className="absolute right-16 bottom-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
         </div>
 
-        {/* Content row — sits above background */}
-        <div className="relative z-10 flex items-center h-full min-h-[280px] md:min-h-[320px] px-8 md:px-12">
-          {/* Left text */}
-          <div className="max-w-[50%]">
-            <Badge className="bg-white/20 text-white border-white/30 mb-4">
+        {/* Content */}
+        <div className="relative z-10 flex items-center min-h-[220px] md:min-h-[320px] px-6 md:px-12">
+          {/* Text — full width on mobile, half on desktop */}
+          <div className="w-full md:max-w-[55%]">
+            <Badge className="bg-white/20 text-white border-white/30 mb-3 md:mb-4">
               🔥 Live auctions happening now
             </Badge>
-            <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3 text-white">
+            <h1 className="text-2xl md:text-4xl font-bold leading-tight mb-2 md:mb-3 text-white">
               The Sneaker Marketplace
               <br />
               <span className="text-purple-200">Built for Deals</span>
             </h1>
-            <p className="text-purple-100 mb-6 text-sm md:text-base">
+            <p className="text-purple-100 mb-4 md:mb-6 text-sm hidden sm:block">
               Bid, offer, and negotiate your way to unbeatable prices on premium
               sneakers.
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-2 md:gap-3">
               <Button
-                className="bg-white text-primary hover:bg-purple-50 font-semibold"
+                className="bg-white text-primary hover:bg-purple-50 font-semibold text-sm"
                 onClick={() =>
                   document
                     .getElementById("products-section")
                     ?.scrollIntoView({ behavior: "smooth" })
                 }
               >
-                Browse Sneakers
+                Browse
               </Button>
               <Link
                 href={
@@ -180,7 +170,7 @@ export default function HomePage() {
               >
                 <Button
                   variant="outline"
-                  className="border-white/50 text-white hover:bg-white/10"
+                  className="border-white/50 text-white hover:bg-white/10 text-sm"
                 >
                   Start Selling
                 </Button>
@@ -188,16 +178,14 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right — shoe overflows the box */}
-          <div className="absolute right-10  md:right-0 bottom-8 w-[340px] md:w-[430px]">
-            {/* Glow blob behind shoe */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-56 h-24 bg-purple-300/30 rounded-full blur-2xl" />
-            <div className="absolute right-70 bottom-50 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
+          {/* Shoe — hidden on mobile, visible md+ */}
+          <div className="hidden md:flex absolute right-2 bottom-12 h-full w-[45%] items-end justify-end">
+            <div className="absolute bottom-4 right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/sneaker.png"
               alt="Featured sneaker"
-              className="relative w-full object-contain"
+              className="relative z-10 h-[95%] w-auto object-contain drop-shadow-2xl"
               style={{
                 filter: "drop-shadow(-8px 16px 24px rgba(0,0,0,0.5))",
                 transform: "rotate(-15deg) translateY(-20px)",
@@ -207,6 +195,13 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Mobile scroll hint */}
+      <div className="flex items-center justify-center gap-1.5 sm:hidden -mt-4">
+        <div className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+        <p className="text-[10px] text-muted-foreground">Scroll to browse</p>
+        <div className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+      </div>
 
       {/* Brands */}
       <section>
@@ -240,7 +235,6 @@ export default function HomePage() {
 
       {/* Products */}
       <section id="products-section">
-        {/* Category filters + results header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             {CATEGORIES.map((cat) => (
@@ -278,7 +272,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Search context */}
         {searchQuery && (
           <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
             <Search className="w-4 h-4" />
@@ -289,9 +282,8 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
@@ -309,13 +301,12 @@ export default function HomePage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {products.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}
             </div>
 
-            {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
               <div className="flex justify-center gap-2 mt-8">
                 <Button

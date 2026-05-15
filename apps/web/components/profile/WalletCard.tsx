@@ -35,16 +35,18 @@ export function WalletCard({ wallet }: { wallet: IWallet }) {
   ];
 
   return (
-    <div className="bg-background rounded-2xl border border-border p-5">
-      <h2 className="font-bold text-dark mb-4">Wallet</h2>
-      <div className="grid grid-cols-2 gap-3">
+    <div className="bg-background rounded-2xl border border-border p-4 md:p-5">
+      <h2 className="font-bold text-dark mb-3 md:mb-4">Wallet</h2>
+      <div className="grid grid-cols-2 gap-2 md:gap-3">
         {stats.map(({ label, value, icon: Icon, color, bg }) => (
-          <div key={label} className={`${bg} rounded-xl p-3`}>
-            <div className="flex items-center gap-2 mb-1">
-              <Icon className={`w-3.5 h-3.5 ${color}`} />
-              <p className="text-xs text-muted-foreground">{label}</p>
+          <div key={label} className={`${bg} rounded-xl p-2.5 md:p-3`}>
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1">
+              <Icon className={`w-3.5 h-3.5 shrink-0 ${color}`} />
+              <p className="text-xs text-muted-foreground truncate">{label}</p>
             </div>
-            <p className={`text-lg font-bold ${color}`}>{value}</p>
+            <p className={`text-base md:text-lg font-bold ${color} truncate`}>
+              {value}
+            </p>
           </div>
         ))}
       </div>
